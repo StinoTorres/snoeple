@@ -666,7 +666,7 @@ document.getElementById("btnShare").onclick=async()=>{
 
 // Eenmalige reset (21 okt 2026): iedereen begint opnieuw als nieuwe speler.
 // Verhoog DATA_VERSION om later nog eens alles te wissen.
-const DATA_VERSION=2;
+const DATA_VERSION=3;   // 3 = reset op 21 okt 2026, 16:15
 if(store.get("snoeple-version",1)<DATA_VERSION){
   try{["snoeple-daily","snoeple-stats","snoeple-seen","snoeple-practice"].forEach(k=>localStorage.removeItem(k))}catch(e){}
   store.set("snoeple-version",DATA_VERSION);
