@@ -1,0 +1,653 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Snoeple: de dagelijkse woordladder naar SNOEP. Verander één letter per stap.">
+<meta name="theme-color" content="#160b0f">
+<style>
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);box-sizing:border-box}
+body{margin:0}
+img{max-width:100%}
+[hidden]{display:none!important}
+</style>
+<title>Snoeple</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bagel+Fat+One&family=Figtree:wght@400;600;800&display=swap">
+<style>
+/* Layout: één smalle kolom als een snoepladder — startwoord boven, sporten naar beneden, SNOEP onderaan, toetsenbord eronder */
+:root{
+  /* Eén donker thema: drop-zwart met snoepkleuren */
+  --bg:#160b0f;          /* dropzwart */
+  --ink:#ffeef3;
+  --muted:#b58c99;
+  --line:#2e1a20;
+  --raspberry:#ff4f86;   /* framboos */
+  --raspberry-ink:#25060f;
+  --mint:#46e0b4;        /* muntje */
+  --mint-ink:#062a1f;
+  --lemon:#ffd447;       /* citroen */
+  --tile:#241319;
+  --tile-edge:#45262f;
+  --key:#331c24;
+  --key-ink:#ffeef3;
+  --licorice:#0a0406;
+  --licorice-ink:#ffeef3;
+  --shadow:rgba(0,0,0,.45);
+  --overlay:rgba(8,3,5,.78);
+  --poep:#7b4a26;         /* 💩 */
+  --poep-edge:#4d2c14;
+  --poep-ink:#fbe9d7;
+  --f-display:"Bagel Fat One","Arial Rounded MT Bold","Trebuchet MS",sans-serif;
+  --f-body:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;
+  color-scheme:dark;
+}
+/* Licht thema (snoepwinkelpapier), aan te zetten met de ☀-knop */
+:root[data-skin="light"]{
+  --bg:#fff4f7;--ink:#2a1418;--muted:#86606c;--line:#f1cfd9;
+  --raspberry:#e3336b;--raspberry-ink:#ffffff;--mint:#35c99f;--mint-ink:#08362a;
+  --lemon:#c98a00;--tile:#ffffff;--tile-edge:#efc3d1;--key:#ffe3ec;--key-ink:#2a1418;
+  --licorice:#2a1418;--licorice-ink:#fff4f7;--shadow:rgba(120,20,50,.14);
+  --poep:#7b4a26;--poep-edge:#4d2c14;--poep-ink:#fbe9d7;
+  --overlay:rgba(60,20,32,.45);
+  color-scheme:light;
+}
+
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.45;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  background-image:radial-gradient(circle at 12px 12px,var(--line) 2px,transparent 2.5px);background-size:28px 28px}
+.app{max-width:440px;margin:0 auto;display:flex;flex-direction:column;gap:8px;padding-block:10px 8px;height:100%;box-sizing:border-box}
+
+header{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px}
+.logo{font-family:var(--f-display);font-weight:400;font-size:clamp(1.3rem,6.3vw,2.1rem);line-height:1;margin:0;letter-spacing:.01em;color:var(--raspberry);
+  text-shadow:2px 2px 0 var(--lemon)}
+.logo span{color:var(--ink);text-shadow:none}
+.hbtns{display:flex;gap:4px;flex-shrink:0}
+@media (max-width:380px){.icon-btn{padding:6px 7px;font-size:.74rem}.icon-btn.round{width:29px;padding:6px 0}}
+.icon-btn.round{width:34px;padding:6px 0;text-align:center;font-family:system-ui,sans-serif}
+.icon-btn{font:600 .82rem var(--f-body);background:var(--tile);color:var(--ink);border:2px solid var(--tile-edge);border-radius:999px;padding:6px 12px;cursor:pointer}
+.icon-btn:hover{border-color:var(--raspberry)}
+.icon-btn[aria-pressed="true"]{background:var(--licorice);color:var(--licorice-ink);border-color:var(--licorice)}
+
+.meta{display:flex;justify-content:space-between;align-items:baseline;font-size:.82rem;color:var(--muted);gap:8px;flex-wrap:wrap}
+.meta b{color:var(--ink);font-variant-numeric:tabular-nums}
+.score{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center}
+.score div{display:flex;flex-direction:column;gap:2px;padding:10px 4px;border-radius:14px;background:var(--bg)}
+.score b{font-family:var(--f-display);font-weight:400;font-size:1.9rem;line-height:1.1;font-variant-numeric:tabular-nums}
+.score span{font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.score .good b{color:var(--mint)}
+.routes{display:flex;flex-direction:column;gap:8px}
+.routes details{border:2px solid var(--tile-edge);border-radius:14px;background:var(--bg)}
+.routes summary{list-style:none;cursor:pointer;padding:10px 12px;display:flex;align-items:center;gap:8px;font-weight:600}
+.routes summary::-webkit-details-marker{display:none}
+.routes summary::before{content:"▸";color:var(--raspberry);transition:transform .2s}
+.routes details[open] summary::before{transform:rotate(90deg)}
+.routes summary b{margin-left:auto;color:var(--muted);font-weight:600;font-size:.85rem}
+.routes summary:focus-visible{outline:3px solid var(--lemon);outline-offset:2px;border-radius:12px}
+.route{list-style:none;margin:0;padding:0 12px 12px;display:flex;flex-direction:column;gap:4px;font-family:var(--f-display);font-size:1.05rem;letter-spacing:.12em;text-transform:uppercase}
+.route li{display:flex;gap:3px}
+.route span{display:inline-grid;place-items:center;width:1.5em;height:1.5em;border-radius:5px;background:var(--tile)}
+.route .rc{background:var(--mint);color:var(--mint-ink)}
+.route .rh{background:var(--raspberry);color:var(--raspberry-ink)}
+.routes .same{margin:0;font-size:.85rem;color:var(--muted)}
+.score .best b{color:var(--raspberry)}
+.verdict{margin:0;text-align:center;font-family:var(--f-display);font-size:1.15rem;color:var(--ink)}
+.verdict.best{color:var(--raspberry)}
+.verdict.good{color:var(--mint)}
+.verdict.over{color:var(--lemon)}
+.score .over b{color:var(--lemon)}
+
+.ladder{display:flex;flex-direction:column;align-items:center;gap:5px;flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;
+  background:var(--bg);border:2px solid var(--line);border-radius:22px;padding:10px 8px;position:relative}
+.rung{display:flex;gap:6px;align-items:center;position:relative}
+.rung .n{position:absolute;left:-30px;width:22px;text-align:right;font-size:.72rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.tile{flex:none;width:clamp(34px,min(12.5vw,6.2dvh),52px);aspect-ratio:1;max-width:100%;display:grid;place-items:center;border-radius:12px;
+  font-family:var(--f-display);font-size:clamp(1.05rem,min(5.6vw,3.1dvh),1.7rem);text-transform:uppercase;
+  background:var(--tile);border:2px solid var(--tile-edge);color:var(--ink);box-shadow:0 3px 0 var(--tile-edge)}
+.start .tile{background:var(--licorice);color:var(--licorice-ink);border-color:var(--tile-edge);box-shadow:0 3px 0 var(--raspberry)}
+.tile.changed{background:var(--mint);color:var(--mint-ink);border-color:var(--mint);box-shadow:0 3px 0 color-mix(in srgb,var(--mint) 60%,#000)}
+.tile.hit{background:var(--raspberry);color:var(--raspberry-ink);border-color:var(--raspberry);
+  box-shadow:0 3px 0 color-mix(in srgb,var(--raspberry) 55%,#000);
+  background-image:repeating-linear-gradient(135deg,transparent 0 9px,rgba(255,255,255,.18) 9px 14px)}
+.input .tile{border-style:dashed}
+.input .tile.filled{border-style:solid;border-color:var(--raspberry)}
+.input .tile.cursor{border-color:var(--raspberry);border-style:solid;animation:blink 1s steps(2) infinite}
+@keyframes blink{50%{border-color:var(--tile-edge)}}
+.input.shake{animation:shake .35s}
+@keyframes shake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.pop .tile{animation:pop .3s ease-out}
+.loaderr{margin:auto;text-align:center;max-width:30ch;color:var(--muted)}
+.sol-label{font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-top:4px}
+.rung.solution .tile{opacity:.62}
+.tile.poep{background:var(--poep);color:var(--poep-ink);border-color:var(--poep);box-shadow:0 3px 0 var(--poep-edge)}
+.route .rp{background:var(--poep);color:var(--poep-ink)}
+.tile.pending{border-color:var(--raspberry)}
+.tile.flip-in{transition:transform .25s ease-in;transform:rotateX(90deg)}
+.tile.flip-out{animation:flipout .25s ease-out}
+@keyframes flipout{from{transform:rotateX(90deg)}to{transform:rotateX(0)}}
+@keyframes pop{0%{transform:scale(.8)}60%{transform:scale(1.08)}100%{transform:scale(1)}}
+.won .rung.final .tile:not(.pending):not(.flip-in):not(.flip-out){animation:wiggle .6s ease-in-out 2}
+@keyframes wiggle{25%{transform:rotate(-8deg)}75%{transform:rotate(8deg)}}
+
+.msg{min-height:1.2em;line-height:1.2em;text-align:center;font-weight:600;font-size:.9rem;color:var(--raspberry)}
+.msg.ok{color:var(--ink)}
+
+.diff{display:inline-flex;align-items:center;gap:6px}
+.stars{color:var(--lemon);letter-spacing:.08em;font-size:.95rem}
+.stars .off{color:var(--tile-edge)}
+.hintflag{font-weight:600;color:var(--muted)}
+.streak{font-weight:800;color:var(--lemon);white-space:nowrap}
+.tool.giveup.armed{border-color:var(--raspberry);color:var(--raspberry)}
+.tools{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.tool{font:600 .85rem var(--f-body);background:transparent;color:var(--ink);border:2px solid var(--tile-edge);border-radius:999px;padding:6px 14px;cursor:pointer}
+.tool:hover:not(:disabled){border-color:var(--raspberry)}
+.tool:disabled{opacity:.4;cursor:default}
+
+.kb{flex:none;display:flex;flex-direction:column;gap:6px;user-select:none;-webkit-user-select:none}
+.kb .row{display:flex;gap:4px;justify-content:center}
+.key{flex:1 1 0;min-width:0;padding:0;max-width:44px;height:clamp(42px,6.6dvh,56px);border:0;border-radius:8px;-webkit-tap-highlight-color:transparent;background:var(--key);color:var(--key-ink);
+  font:800 1rem var(--f-body);text-transform:uppercase;cursor:pointer;box-shadow:0 2px 0 var(--tile-edge);touch-action:manipulation}
+.key.wide{max-width:66px;flex:1.55 1 0;font-size:.72rem}
+.key.enter{background:var(--raspberry);color:var(--raspberry-ink);box-shadow:0 2px 0 color-mix(in srgb,var(--raspberry) 55%,#000)}
+.key:active{transform:translateY(2px);box-shadow:none}
+
+.overlay{position:fixed;inset:0;z-index:50;display:flex;overflow-y:auto;
+  background:var(--overlay);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);
+  padding-top:max(16px,env(safe-area-inset-top,0px));padding-bottom:max(16px,env(safe-area-inset-bottom,0px));
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  animation:fade .25s ease-out}
+.overlay .result{width:100%;max-width:400px;box-sizing:border-box;position:relative;box-shadow:0 20px 60px rgba(0,0,0,.55),0 0 0 4px color-mix(in srgb,var(--raspberry) 35%,transparent);
+  animation:rise .45s cubic-bezier(.2,1.4,.4,1)}
+.result h2{padding-right:36px}
+.overlay>.panel{margin:auto}
+.close{position:absolute;top:10px;right:10px;width:34px;height:34px;border-radius:50%;border:2px solid var(--tile-edge);background:transparent;color:var(--ink);font-size:1rem;cursor:pointer}
+.close:hover{border-color:var(--raspberry)}
+.reopen{align-self:center}
+@keyframes fade{from{opacity:0}}
+@keyframes rise{from{transform:translateY(40px) scale(.92);opacity:0}}
+.panel{background:var(--tile);border:2px solid var(--tile-edge);border-radius:20px;padding:16px;display:flex;flex-direction:column;gap:12px}
+.panel h2{font-family:var(--f-display);font-weight:400;font-size:1.5rem;margin:0;text-wrap:balance;color:var(--raspberry)}
+.panel p{margin:0;max-width:60ch}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px 6px;text-align:center}
+.stats div{display:flex;flex-direction:column}
+.stats b{font-family:var(--f-display);font-weight:400;font-size:1.5rem;font-variant-numeric:tabular-nums}
+.stats span{font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.share{white-space:pre-wrap;overflow-wrap:anywhere;font-size:.9rem;background:var(--bg);border-radius:12px;padding:10px;margin:0;font-family:var(--f-body)}
+.cta{font:800 1rem var(--f-body);background:var(--raspberry);color:var(--raspberry-ink);border:0;border-radius:999px;padding:12px 18px;cursor:pointer}
+.cta.alt{background:var(--licorice);color:var(--licorice-ink)}
+.ctas{display:flex;gap:8px;flex-wrap:wrap}
+.ctas .cta{flex:1;min-width:140px}
+.howto{gap:10px;font-size:.92rem}
+.howto h2{font-size:1.35rem;line-height:1.15}
+.howto .lead{margin:0;font-weight:800}
+.howto ol{margin:0;padding-left:1.2em;display:flex;flex-direction:column;gap:6px}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:.85rem;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.sw{display:inline-block;width:18px;height:18px;border-radius:5px}
+.sw.hit{background:var(--raspberry);background-image:repeating-linear-gradient(135deg,transparent 0 5px,rgba(255,255,255,.22) 5px 8px)}
+.sw.changed{background:var(--mint)}
+[hidden]{display:none!important}
+.example{font-family:var(--f-display);font-size:1rem;line-height:1.8}
+.example i{font-style:normal;color:var(--muted);font-family:var(--f-body)}
+.example em{font-style:normal;background:var(--mint);color:var(--mint-ink);border-radius:6px;padding:0 4px}
+button:focus-visible{outline:3px solid var(--lemon);outline-offset:2px}
+.credit{margin:0;text-align:center;font-size:.72rem;color:var(--muted)}
+.credit a{color:var(--muted)}
+.timer{font-variant-numeric:tabular-nums;font-weight:800}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}
+</style>
+</head>
+<body>
+<script>try{if(localStorage.getItem("snoeple-skin")==="light")document.documentElement.dataset.skin="light"}catch(e){}</script>
+
+<div class="app" id="app">
+  <header>
+    <h1 class="logo">Snoe<span>ple</span></h1>
+    <div class="hbtns">
+      <button class="icon-btn" id="btnDaily" aria-pressed="true">Vandaag</button>
+      <button class="icon-btn" id="btnPractice" aria-pressed="false">Oefenen</button>
+      <button class="icon-btn round" id="btnSkin" aria-label="Licht thema">☀</button>
+      <button class="icon-btn round" id="btnHelp" aria-label="Uitleg">?</button>
+    </div>
+  </header>
+
+  <div class="overlay" id="howto" hidden role="dialog" aria-modal="true" aria-labelledby="howtoTitle">
+  <section class="panel result howto">
+    <h2 id="howtoTitle">Hé ouwe snoepert, wat leuk je hier te zien.</h2>
+    <p class="lead">Zo speel je Snoeple:</p>
+    <ol>
+      <li>Verander per stap <b>één letter</b> tot je bij <b>SNOEP</b> bent. Elk woord moet echt Nederlands zijn.</li>
+      <li>Haal <b>par</b>: de kortste route met bekende woorden. Meer sterren is een langere route, van ★ (4 of 5) tot ★★★★★ (9 of meer).</li>
+      <li>Ken je zeldzame woorden? Dan kom je onder par, misschien wel tot de <b>perfecte score</b>: de kortste route die bestaat.</li>
+      <li>Vast? Je hebt 1 hint, bij ★★★★ 2 en bij ★★★★★ 3.</li>
+      <li>Elke dag een nieuwe puzzel. Speel elke dag voor een 🔥 reeks.</li>
+    </ol>
+    <div class="legend">
+      <span><i class="sw hit"></i>op de goede plek</span>
+      <span><i class="sw changed"></i>net veranderd</span>
+    </div>
+    <button class="cta" id="btnCloseHelp">Ik snap het!</button>
+    <p class="credit">Woordenlijst: <a href="https://github.com/OpenTaal/opentaal-wordlist" target="_blank" rel="noopener">Stichting OpenTaal</a>, officiële spelling (CC BY 3.0 / BSD)</p>
+  </section>
+  </div>
+
+  <div class="meta">
+    <span><span id="label">Snoeple #1</span> <span class="streak" id="streak" hidden></span></span>
+    <span class="diff" id="diff" aria-label="Moeilijkheid"></span>
+    <span>stappen <b id="steps">0</b></span>
+  </div>
+
+  <div class="ladder" id="ladder"></div>
+  <div class="msg" id="msg" role="status" aria-live="polite"></div>
+
+  <div class="tools" id="tools">
+    <button class="tool" id="btnUndo">Stap terug</button>
+    <button class="tool" id="btnHint">Hint (1×)</button>
+    <button class="tool" id="btnRestart">Opnieuw</button>
+    <button class="tool giveup" id="btnGiveUp">Kleine speler</button>
+  </div>
+
+  <button class="cta reopen" id="btnReopen" hidden>Bekijk je uitslag</button>
+
+  <div class="overlay" id="overlay" hidden role="dialog" aria-modal="true" aria-labelledby="resTitle">
+  <section class="panel result" id="result">
+    <button class="close" id="btnClose" aria-label="Sluiten">✕</button>
+    <h2 id="resTitle">Smullen!</h2>
+    <div class="score" id="resScore"></div>
+    <p class="verdict" id="resVerdict"></p>
+    <p id="resText"></p>
+    <div class="routes" id="resRoutes"></div>
+    <p class="hintflag" id="resHint"></p>
+    <div class="stats" id="stats"></div>
+    <pre class="share" id="shareText"></pre>
+    <div class="ctas">
+      <button class="cta" id="btnShare">Kopieer je score</button>
+      <button class="cta alt" id="btnMore">Nog een (oefenen)</button>
+    </div>
+    <p style="color:var(--muted);font-size:.85rem" id="nextIn"></p>
+  </section>
+  </div>
+
+  <div class="kb" id="kb"></div>
+</div>
+
+<script>
+const WORDS = new Set("aagje aaien aapje aarde aards abces abdij abuis acres acryl actie actor acute acuut adder ademt aders adieu adios adobe adres adult afdak afnam afrit afval afwas afzet agent agora airco akker akten aktes alarm album aldus alert algen alias alibi alien alken allen aller alles alpen alsof alter amber amigo amine amper anaal anale ander angel angst anima anime animo anita anjer anker annex aorta apart appel appen appje april arden arena arend argon argus armen armer armoe aroma array asbak asiel assen asten aster astma aston atlas atoom audio audit avond azijn baalt baard baars baart babes backs bacon baden badge badje bagel bajes baken baker bakje bakte balen balie banco bands banen bange banjo barak baren baret barok baron barre barst bases basic basis basta batch baten baton bazel bazen bazig bazin beats bedek bedel beden bedje beeft beeld beent beest begaf begin begon beide beige bekaf beken beker belde beleg belet belle bemin bench bende benen bente benul benut beren berge bergt besef besta beste beten beter beton bette beurs beurt beval bevat bevel beven bever bezat bezem bezet bezig bezit bidon biedt biest bijen bijna biker bindt bingo bitch bivak bizar bizon blaam blaas blaat blaft blank blauw bleef bleek bleke bliep blies blije blijf blijk blikt blind blink blits blitz block bloed bloei bloem bloes blogs blogt blond blonk bloos bloot blote blues bluft blust board bobby bocht bodem boden boeit boekt boers boert boete bogen bogey bokst bolle bomen bonen bongo bonje bonte bonus boord boort boost boots boren borst bosje boten boter botje botox botst botte bouwt boven boxen boxer bozer braaf braak braam brace brand brave bravo break brede breed breek breid brein brems breng breuk brief bries brink brits broed broek broer broes brons brood broos broze bruid bruin brult brute bruto bruut buddy buggy buien buigt built bully bunny buren busje buste buurt bytes cacao cache caddy cadet cajun cakes camel cameo campo camps candy canon canto cargo casco cases casus catch cavia ceder cello chant chaos charm chart chats cheat check chefs chemo chick chili chill chino chips choco choke chris cider circa claim clans clark clash claus clean click clips close clown clubs coach cobra cocon codes codex combi combo comic conti conto coole cools corps corsa corso costa couch coupe cover crack crash crazy credo crews crime crisp cross crown curie curry curve cycli daags daagt daalt dacht daden dader dagen dagje daisy daken dakje dalen dames dance dandy danig dankt danst darts daten dates datje datum deals dealt debat debet decks decor deden deels deelt deert degen deken dekte delen deler delft delta demon dempt denim denkt depot depri derby derde deren detox deuce deugd deugt dezen dezer dicht dieet diens dient diepe dijen dikke dikte dildo dille dinar diner dingo diode dipje disco dixie dixit dizzy djinn doden doelt doemt doffe dogma doken dolby dolce dolen dolle dolly dombo domme donna donor donut doods doodt dooft dooie doopt doorn dopen doper dorps dorre dorst doses dosis doven dover dozen draad draaf draag draai draak drain drama drang drank dreef dreig dreun dries drift drijf dring drink drive droef droeg droge drone drong dronk droog droom droop drops dropt drost drugs druif druil drukt drums duaal duale duels duidt duikt duldt dummy dumpt dunkt dunne duren durft dutje duurt duvel duwde duwen dwaal dwaas dwang dwars dwaze dweil dwerg dwing dwong ebben ebola echte edele eerde eerst effen egaal egale egels eicel eigen eikel eiken einde eisen eiser eiste eitje eiwit eland elfde elfen elfje elite ellen elpee elven elzen email emmer enfin engel enger enige enkel enorm enten enter enzym eraan erbij erfde erger ergst erica erken erker ermee ernst ertoe eruit ervan erven essay essen ester etage etend eters ether etsen etter euvel event evers exact expat extra ezels faalt fabel facet faire faken fakir falen farao farce fasen fases fatwa fauna faxen feeks feest felle ferme ferry fiber ficus field fiere fiets fijne fikse files filet films filmt firma fitte fixen fixer fjord flair flank flash flats flauw fleur flexi flikt flink flint flipt flirt flits floep floot flops flora fluit fluor flyer fobie focus folie folio fonds forel forse forte forum foton foute foyer fraai frame franc frank freak fries friet frons front fruit funky furie fusie fuzzy fysio gaand gaans gaard galen galop gamba gamen gamer games gamma ganse gapen garde garen gaten gates gaven gazon gebak gebed gebit gebod gedag gedoe geeft geert geest gegil gehad geile geilt gejat gekke gekko gekte geldt gelei gelet geluk gelul gemak gemis gemma genas genen genie genot genre genua genus gered gerst geste getal getij getik getto geuit geval gevat gevel geven gever gewag gewas gewed gewei gewin gezag gezel gezet gezin gilde ginds gipsy giraf glans gleed gleuf glijd glimp glimt glipt globe gloed gnoes gnoom goals goden godin goede goeds goeie gokje golem golft gooit goten gouda gouwe gozer graad graaf graag graal graan graat graft grapt grauw grave green greep grens grief griek griep griet grift grijp grijs grill grime grind groef groei groen groep groet grond groot grote grove gruis gulle gunde gunst guppy haaks haakt haalt haard haast hacks hagel hagen haiku haken hakte halal halen hallo halte halve hamam hamas hamer hands handy hanen hangt hapje happy haram harde hards harem haren harig harte haten hater haven haver havik hazen heavy hecht heden heeft heelt heers heide heisa hekel hekje helen heler helft helix helle helpt helse hemel henna henry heren hertz heten heter hetze heuse hevig hiaat hield hielp hinde hints hippe hitje hitte hobby hoede hoedt hoeft hoera hoest hoeve hoezo hofje hoger hokje holen holes holle holst holte homes honig hoofd hoogt hoopt hoorn hoort hopen hopla hoppa horde horen horst hoste hosts hotel houdt house hoven https huilt huist hulde hulst humor humus huren husky hutje huurt huwde huwen hydra hyena hymne hyper icoon idool ieder iepen ijdel ijlst ijsje ijver ijzer ijzig image imago imams imker immer inbox index ineen inert infra inham inleg inlog innam innen innig input inrit insta intro inval inzag inzet inzit ionen islam issue items ivoor jaagt jacht jacks jaden jagen jager janet janus japon jaren jarig jasje jatte jawel jazzy jeans jeeps jemig jeugd jeukt jicht jihad joden joelt joint joker jonas jonge jongs joods jouwe jozef judas juich juist jumbo junks junta kaars kaart kabel kaden kader kades kajak kaken kalme kamer kampt kanon kapel kapen kaper kapje kapot kappa karen karig karma karst kassa kaste kater katje kauwt kavel kazen kebab keert kegel keien keken kelen kelly kende kerel keren kerst ketel keten keurt keuze kever kicks kickt kiest kijkt kille kinds kinky kiosk klaag klaar klaas klank klant klapt klare klauw kleed kleef klein klemt klerk klets kleur kliek klier klikt klimt kling klink kloek klojo klomp klonk klont kloof kloon kloot klopt klote kluif kluis kluit kluts knaap knalt knapt kneep kneus knijp knikt knipt knoop knots koala kocht kodak koele koelt koers koert koest koets kogel koken koker kokos kolen kolom kolos komaf komen komma komst kookt koopt koord kopen koper kopie kopij kopje kopte koran koren korps korst korte koste kotst koude kozen kraag kraai kraak kraal kraam kraan krabt kramp krans krant kreeg kreek kreet kreng krent kreuk kreun krijg krijt krill krimp kring kroeg kroes kroon kroop kroos kruid kruik kruin kruip kruis kruit kubus kudde kuier kunde kunne kunst kuren kusje kuste kutje kwaad kwaal kwade kwark kwart kwast kweek kwets kwiek kwijt laadt laars label lacht laden lader lades laffe lagen lager lakei laken lamme lande lands landt lanen lange langs lapje laren large largo larie larve laser lasso laste laten later latex latte lauwe lazen lazer lease leden leder ledig leeft leegt leent leert leest leeuw legde legen leger legio leidt leien leken lekke lekte lelie lemen lenen lenig lente lepel lepra leren lesbo lesje lette leuke leuks leunt leuze level leven lever lezen lezer libel licht liefs liegt lieve lijdt lijkt lijst liken likes likje likte limbo limes limit linde linie linke links linkt liter lives lobby locus loden loert logge login logos loket lokte lolly lompe lonen lonkt loods looft loont loops loopt lopen loper lords loser losse loste loten lotje lotto lotus loven lover lozen lucht lucky luide luidt luier lukte lumen lunch lupus luwte lynch maagd maait maakt maalt maand maant maart macho macht macro madam maden maffe magen mager magie magma mails mailt major maken maker malen malle malse malta malus mamba mambo mamma manco manen manga mango manie manke manna manta mapje maren marge markt massa match maten mater matig matje matte mauve maxim mayor mazen media medio meent meert meest meeuw meier mekka melde meldt melig melis menen mengt menig mensa merci merel meren merkt mesje meten meter metro meute mezen mezzo miauw micro mijdt mijne mijns milde mille minne minor minst minus mirre miste mitra mixed mixen mixer mocht model modem modes modus moede moest mogen moker mokka molen monde mondt money mooie moois moord morel moren mores morse morst motel motie motor motte motto mount moves muren musea muzen mythe naait naakt naald naast nabij nacht nadat naden nader nagel namen nanny natie natte nauwe navel neder neemt negen neger neigt nemen neppe nerds netje nette netto neukt nevel neven nexus niche nicht niest niets nieuw nihil ninja nipte nobel noden nodig noemt nogal nooit noord noren norse noten notie novum nurse nylon oasis obers oefen oehoe oever offer ofwel ogend oksel olijf omarm omdat omega omvat omver omweg omzet onder onwel onwil onzer onzin oogje oogst opbod opdat opeen opeet opent opera opgaf ophef opium oplet opnam oppas opper oprit opsta optie opvat opzet opzij oraal orale orden order orgel orgie ossen otter ouden ouder oudje oudst ovaal ovale ovens overs oxide paard paars pacht packs paddy paden padje pages pakje pakte palen palet panda panel panna panne panty paper pappa parel paren paria parka party pasar pasje passe pasta paste patat patch pater patio pauze pekel pence penis penny peper peren perst pesto peter petje pezen piano piece piept pijpt pikte pilot pinda piste pitch pitje pixel pizza plaag plaat plaid plakt plane plank plans plant plast plebs pleeg plein pleit pleur plint ploeg plomp plons plooi plots pluim pluis plukt podia poema poept poets pogen poker polak polen polio polis polka polls pompt poogt pools poort popje poppy porie porno porto poten potje poule pover power praal praat preek prees prent prijs prikt prima prime primo prins print prior proef profs promo pronk prooi provo proxy proza pruik pruim psalm psych puber puike puist pumps punch pupil puppy puree putje putte puurs quads quark quasi quota quote raadt raakt raapt raars raast rabat rabbi racen racer races racet radar raden radio rails raken raket rally rambo ramde ramen ranch range ranja ranke ranst rapen rasta ratel ratio rauwe raven rayon razen reaal reach ready rebel reces recht recta redde reden reder reeds reeks regel regen regie regio reiki reikt reine reist reken relax remde remix rende renen rente repen reply reset retro reuma reuze revue riant richt riekt rijdt rijen rijke rijks rijmt rijpe rijpt rijst rilde rioja riool ritje ritme robot roden rodeo roder roede roeit roemt roept roert roest rogge roken roker rokje rolde roman romig ronde rondo rondt rooie rookt rooms roots rosse rotor rotte rouge route rouwt roven rover rowan rozen rozet rugby ruige ruikt ruilt ruime ruimt ruist rukte runde runen ruste ruzie saaie sabel sagen salam saldo salie salon salsa salto salvo samba sambo samen sapje sarin satan sauna scala scalp scans scant scene schaf schap schat schei schep schik schil schim schip schok schol schop schor schot schud schut schuw scoop scoor scope score scout scrub scrum sedan sekse sekte sepia serge serie serre serum serve servo sesam setje sfeer sfinx shake sheet shell shift shirt shock shops shopt short shots shows showt siena siert sigma sikhs sinas sinds sinus sissy sites sjaak sjaal sjeik sjerp sjiek sjoel skate skins skunk slaaf slaag slaan slaap slaat slang slank slash slede sleep sleuf sleur slice slick sliep slijk slijm slijt slikt slips sloeg sloep slome sloom sloop sloot slots sluip sluis sluit slurf slurp sluwe smaad smaak small smart smash smeek smeer smeet smelt smijt smoel smoes smolt smult smurf snaar snack snakt snapt snauw snede sneed sneep sneer snelt snert snijd snode snoei snoek snoep snoer snoet snoof snuif snuit snurk soaps sober soera soest softe solex sonar sonde songs soort sores sorry sound spaak spaan spaar spade spant speed speel speen speer speld spelt speur spier spies spijk spijs spijt spike spint spion spits split spoed spoel spong spons spook spoor spoot spore sport spots sprak spray sprei spuit spurt spuug spuwt staaf staak staal staan staar staat stads stage stalk stalt stamp stamt stand stang stank stans stapt stars start state steak steef steeg steek steel steen steil stelt stemt stent steps sterf sterk stern steun steur stick stier stift stijf stijl stikt stilt stink stipt stock stoel stoep stoer stoet stokt stolp stolt stoma stomp stoms stond stonk stoof stook stoom stoor stoot stops stopt store storm stort story stout straf strak stram strek strik strip strop strot study stuff stuit stuks stunt stuur stuwt style suffe suite summa super surft sushi swing taaie taart tabak tabel taboe tafel tahoe takel taken takje talen talon talud tamme tango tanks tante tapas tapen tapes tarot tarwe taser tasje taste taupe taxus teams teddy teder teelt tegel tegen teint teken tekst telde telen telex tempo tenen tenor tenue tepel teren terra terug tesla tests tetra teven thans thema these thuis tiara tijde tikje tikte tilde timen timer tipje tipte tiran titan titel toast tocht toert toets toffe token tombe tommy tonen toner tonic tools toont toorn toost topic topje toren torso tosti totem touch tours tover traag traan track trage train trams trans trant trapt trash trede treed trees treft trein trekt trend treur trial trias trick trilt trips troef troep tromp troon trots trouw truck trucs trust tsaar tubes tucht tumor tunen tuner tunes turbo turen tutti tweed tweet twist tyfus typen types typte uilen uiten uitje uitte ultra unica uniek units upper urban urine urnen uzelf vaart vacht vader vaker vakje valse vanaf vangt varen varia vaste vaten vatte vazal vazen vecht veegt veert vegen velde velen veler venen veraf veren verft verga vergt verre verse verso verst verte veste veter vette vezel video viert vieux views vieze villa vindt vinyl viool viral virus visie visje viste visum vlaag vlaai vlees vleet vlied vlieg vlier vlies vliet vlijt vloed vloei vloek vloer vlogs vloog vloot vocal vocht voedt voegt voelt voert vogel volgt volks volle volop volta voogd voorn voort voren vorig vormt vorst vouwt vraag vrede vrees vreet vries vrije vroeg vrome vroom vrouw vuile vuist vulde vuren vurig vuurt waagt waait waakt waant waard waart wacht waden wafel wagen wagon waken waker walen walgt wanen wanne wants wapen waren warme warms warmt wasje waste water watje watts waves waxen wazig weber wedde weder weegt weeks weert weest wegen wegga weide weids weken wekte welig welke welnu wemel wende wendt wenst weren werft werkt werpt weten weven wever wezel wezen white wicht wiens wierp wijde wijdt wijkt wijst wijze wilde windt winst wipte wisse witje witte wodka woede woedt woelt woerd woest wonde wonen woont woord wordt worst wraak wrang wraps wrede wreed wreef wrijf wrong xenon yards zaagt zaait zacht zadel zaden zagen zaken zakje zakte zalen zalig zandt zaten zebra zeden zegde zegel zegen zeges zegge zegje zeikt zeilt zeker zelfs zendt zenit zenuw zesde zetel zetje zette zeurt zeven zicht zieke ziens ziezo zijde zijne zijns zilte zingt zinkt zitje zoals zocht zodat zoden zodra zoekt zoemt zoent zoete zogen zolen zomer zomin zonde zonen zones zonet zoons zorgt zoute zover zowat zowel zucht zuigt zuipt zulke zulks zulte zumba zuren zusje zwaai zwaan zwaar zware zwart zweed zweef zweeg zweep zweer zweet zwelt zwemt zwerm zwier zwijg zwijn zwoeg zwoel zwoer".split(" "));
+// Bekende woorden (officiële lijst × woordfrequentie): par en hints rekenen alleen hiermee
+const FAMILIAR = new Set("aaien aapje aarde aards abdij abuis actie acute acuut adder ademt aders adres afrit afval afwas afzet agent airco akker akten aktes alarm album aldus alert algen alias alibi allen aller alles alpen alsof alter amber amigo amine amper anaal anale ander angel angst animo anita anker annex apart appel april arena arend armen aroma asiel assen asten astma atlas atoom audio audit avond azijn baalt baard baars baart baden baken bakje balen balie banen bange barak baren barok baron barre barst basis basta baten bazen bedel beden bedje beeld beent beest begaf begin begon beide beige beken beker belde beleg belle bende benen benul benut beren berge besef besta beste beter beton bette beurs beurt beval bevat bevel beven bever bezat bezem bezet bezig bezit biedt bijen bijna bindt bingo bizar blaam blaas blaat blaft blank blauw bleef bleek bleke bliep blies blije blijf blijk blikt blind blink blits bloed bloei bloem bloes blond bloos bloot blote blust bocht bodem boden boeit boekt boert boete bogen bolle bomen bonen bongo bonte bonus boord boots boren borst bosje boten boter botje botox botst botte bouwt boven boxen boxer braaf braak braam brand brede breed breek brein brems breng breuk brief bries brink brits broed broek broer broes brons brood broos bruid bruin brute bruto bruut buien buigt buren busje buste buurt cacao cadet canon casus cavia cello chaos chemo chili chips choco circa claim clans clown cobra cocon codes codex coupe credo curry daags daagt daalt dacht daden dader dagen dagje daken dalen dames dankt danst daten datum debat decor deden deels deelt deken delen delta demon denkt depot derde deugd deugt dezen dezer dicht dieet diens dient diepe dijen dikke dikte dildo diner disco doden doelt doemt dogma doken dolle dombo domme donor donut doods doodt dooie doopt doorn dopen dorst doses dosis doven dozen draad draaf draag draai draak drama drang drank dreef dreig dreun dries drift drink droef droeg droge drong dronk droog droom droop drops dropt drost drugs druif druil drukt duels duidt duikt dunne duren durft dutje duurt duvel duwde duwen dwaas dwang dwars dwaze dweil dwerg dwong ebola echte edele eerst effen eigen eikel eiken einde eisen eiste eitje eiwit elfde elfen elite ellen emmer enfin engel enige enkel enorm enzym eraan erbij erger ergst ermee ernst ertoe eruit ervan erven essay essen ester etage etend eters ether exact extra ezels faalt fabel falen farao farce fasen fases fauna feest felle ferme fiets fijne fikse files films filmt firma flair flank flauw fleur flikt flink flint flits floep floot flora fluit fobie focus folie fonds forel forse forum foute foyer fraai franc frank fries friet front fruit fusie fysio gaans gaard galen gamma ganse garde garen gaten gaven gazon gebak gebed gebit gebod gedag gedoe geeft geest gegil gehad geile gejat gekke gekte geldt gelet geluk gelul gemak gemis genen genie genot genre gered gerst getal getto geuit geval gevat gevel geven gewas gewei gewin gezag gezet gezin gilde glans gleed gleuf glimp glimt globe gloed gnoom goden godin goede goeds goeie gokje gooit goten gouwe gozer graad graaf graag graal graan greep grens griek griep griet grijp grijs grill grind groef groei groen groep groet grond groot grote grove gruis gulle gunst guppy haaks haakt haalt haard haast hagel hagen haiku haken halal halen hallo halte halve hamer hangt hapje harde haren harig harte haten haven haver havik hazen hecht heden heeft heelt heers heide hekel hekje helen helft helix helle helpt helse hemel heren heten heuse hevig hield hielp hints hippe hitte hobby hoede hoeft hoera hoest hoeve hoezo hoger hokje holle holst holte hoofd hoopt hoorn hoort hopen horde horen hotel houdt hoven huilt huist hulde hulst humor huren hutje huurt huwde hydra hyper icoon idool ieder ijsje ijver ijzer imago imker immer index ineen infra inham inleg innam innen inval inzet inzit islam ivoor jaagt jacht jagen jager jaren jarig jasje jawel jemig jeugd joden joelt joint joker jonge jongs joods jouwe juist jumbo junta kaars kaart kabel kaden kader kaken kalme kamer kampt kanon kapel kapen kapot karig karma kassa kaste kater katje kavel kazen keert kegel keien keken kende kerel keren kerst ketel keten keurt keuze kever kiest kijkt kille kiosk klaag klaar klank klant klapt klare klauw kleed kleef klein klerk klets kleur klikt klimt klink kloek klomp klonk klont kloof kloon klopt klote kluis knaap knalt knapt kneep knijp knipt knoop knots koala kocht koele koelt koers koets kogel koken koker kokos kolen kolom komaf komen komma komst kookt koopt koord kopen koper kopie kopje koran koren korps korst korte koste koude kozen kraag kraai kraak kraam kraan kramp krans krant kreeg kreek kreet krent kreuk kreun krijg krijt krimp kring kroeg kroes kroon kroop kroos kruid kruik kruip kruis kruit kubus kudde kuier kunde kunst kusje kuste kutje kwaad kwaal kwade kwart kwast kweek kwijt laadt laars label lacht laden lader laffe lagen lager laken lamme lande lands landt lange langs lapje laren laste laten later latex latte lazen lazer leden leder leeft leegt leent leert leest leeuw legde legen leger legio leidt leien leken lekke lekte lelie lenen lenig lente lepel leren lesje leuke leuks leunt leuze leven lever lezen lezer licht liefs liegt lieve lijdt lijkt lijst linde linie linke links linkt liter loert loket lokte lolly lonen loods loont loopt lopen loper losse loste loten lotto lotus lozen lucht luide luidt luier lukte lumen lunch maagd maakt maand maart macht macro maffe magen mager magie maken maker malen malle mamma manen manga mango marge markt massa maten matig matje matte media medio meent meest meeuw meldt menen mengt menig merel meren merkt meten meter metro mezen micro mijne milde mille minst minus miste mixen mixer mocht model modem modus moede moest mogen molen monde mondt mooie moois moord morse motie motor motto muren musea mythe naait naakt naald naast nabij nacht nadat nader nagel namen nanny natie natte nauwe navel neder neemt negen neigt nemen netje nette netto neukt nevel neven niche nicht niets nieuw nihil ninja nobel noden nodig noemt nogal nooit noord noren noten notie novum nylon oefen oever offer ofwel oksel olijf omdat omvat omver omweg omzet onder onwel onzin oogje oogst opdat opent opera ophef opium oplet opnam oppas opper oprit optie opzet opzij orale order orgel orgie otter ouden ouder ovaal ovale ovens paard paars pacht paden padje pakje pakte palen palet panda panel panne panty parel paren pasje passe pasta paste patat pater pauze penis peper peren petje pezen piano pijpt pinda piste pizza plaag plaat plakt plank plant plast pleeg plein pleit plint ploeg plons plots pluim pluis plukt podia poema poept poets poker polen polis pompt pools poort popje porie porno poten potje poule praat preek prees prent prijs prikt prima prins print proef profs pronk prooi proza pruik pruim psalm puber puist pumps punch pupil puree putte puurs quasi raadt raakt raast rabbi racen racer races radar raden radio rails raken raket ramde ramen ranst rapen ratio rauwe raven rayon rebel recht redde reden reeds reeks regel regen regie regio reikt reine reist reken rende renen rente repen reuze revue richt riekt rijdt rijen rijke rijks rijmt rijpe rijst rilde riool ritje ritme robot roden roede roept roert roest rogge roken roker rokje rolde roman romig ronde rooie rookt rooms rosse rotte route rouwt roven rover rozen ruige ruikt ruime ruimt ruist rukte ruzie saaie saldo salon salsa salto samba samen sauna scala schap schat schep schil schip schok schol schop schor schot schud schut scoop scoor sekse sekte serie serre serum setje sfeer sfinx siert sigma sinds sjaal sjeik skate slaaf slaag slaan slaap slaat slang slank slede sleep sleur sliep slijm slikt sloeg sloep sloom sloop sloot sluip sluis sluit slurf slurp smaad smaak smart smeek smeer smeet smelt smoel smoes smult smurf snaar snack snapt snauw snede sneed sneer snijd snoei snoek snoep snoer snoet snoof snuit snurk sober soera sonde soort spaak spaan spaar spant speel speen speer speld spelt speur spier spies spijt spint spion spits split spoed spoel spons spook spoor spoot sport sprak sprei spuit spurt staaf staal staan staar staat stads stage stalt stamp stamt stand stang stank stapt start steeg steek steel steen steil stelt stemt sterf sterk steun steur stier stift stijf stijl stikt stilt stink stipt stoel stoep stoer stoet stomp stond stoof stoom stoor stoot stopt storm stort stout straf strak stram strik strip strop strot stuit stuks stunt stuur suite super sushi taaie taart tabak tabel taboe tafel taken talen tamme tango tanks tante tapas tapes tarot tarwe tasje teelt tegel tegen teken tekst telde telen tempo tenen tenor tenue tepel teren terra terug thans thema thuis tiara tijde tikje timer tiran titan titel toast tocht toert toets toffe tombe tonen tonic toont toorn toost topje toren torso tosti traag traan trage trams trant trapt treed treft trein trekt trend trias trilt troef troep tromp troon trots trouw trucs tsaar tumor twist tyfus typen uilen uiten uitje uitte ultra uniek urine uzelf vaart vacht vader vaker vakje valse vanaf vangt varen vaste vaten vatte vazen vecht veegt vegen velde velen venen veraf veren vergt verre verse verst verte veste veter vette vezel video viert vieze villa vindt vinyl viool virus visie visje visum vlaag vlaai vlees vleet vlied vlieg vlies vliet vloed vloei vloek vloer vloog vloot vocht voedt voegt voelt voert vogel volgt volks volle volop voogd voort voren vorig vormt vorst vraag vrede vrees vreet vries vrije vroeg vrome vroom vrouw vuile vuist vulde vuren vurig vuurt waagt waait waakt waard wacht wagen wagon waken wanen wapen waren warme water watje wazig wedde weder weegt weeks weert weest wegen weide weken wekte welke welnu wenst weren werft werkt werpt weten weven wever wezel wezen wiens wierp wijde wijdt wijkt wijst wijze wilde windt winst wipte wisse witte wodka woede woedt woelt woest wonde wonen woont woord wordt worst wraak wrede wreed wrijf wrong zaait zacht zadel zaden zagen zaken zakje zakte zalen zalig zaten zebra zeden zegel zegen zeges zegge zeker zelfs zendt zenit zenuw zesde zetel zetje zette zeurt zeven zicht zieke ziens zijde zijne zilte zingt zinkt zitje zoals zocht zodat zodra zoekt zoemt zoent zoete zolen zomer zonde zonen zones zonet zoons zorgt zoute zover zowat zowel zucht zuigt zulke zuren zusje zwaai zwaan zwaar zware zwart zweed zweef zweep zweer zweet zwemt zwerm zwijg zwijn zwoeg zwoel zwoer".split(" "));
+const TARGET = "snoep";
+// Dagpuzzels: versleuteld, zodat de startwoorden niet leesbaar in de broncode staan.
+// DAILY_SOURCE "server": de puzzel van vandaag komt van /api/vandaag (zie worker.js) en staat dan helemaal niet in de pagina.
+const DAILY_SOURCE = "embedded";
+const DAILY_COUNT = 262;
+const DAILY_BLOB = "usnjaemwqvsbnscf2zfbxpg6pwpkesiejtkkn6orsrjuejbpmjxe357rr4mi6pl55n5qnamnjeywmuo7jcuklqhfmpzumkek2qvvyhyv2jstwqplbfqvxhiftnve7k32ev3il3owwqnfx36qpblp6mi7yu62flm7dpkebri2nstrk7dtanoamryxvu7fwk3tyklenrfop25d4cwufdgiemnrsxwg37e6pipc4goocgdjxocb37jjc6nhn5xsh3q24yq5ji24zsupzdvx7vj7utcmdnkhuwithsk63vpzsl2biggqk4dm2ldrnowhus6ger5epvg3dopfcnybjgqmj4f2fj6uskpyjv467z6qnqin2oqxeezjlteghfigp42xsrjzqn35a5va5x4txsnjaiw5mfcntjczrquyx6dttist5myq3fsimx5dhowmx7tgdfj7jprdxdgrjwo7vz7eqcuss67q6763a5lb555rm5mtzo5upug6xigzomogwpzfy57u2k24scti3s5um5weqivdewolvensre3tzmmch6q7n3ws7ktivq3u45ik6sqq3epsyqbsr6hbprl7c2gxvgwf3icahoiegy5bsavqb5vtatkp7yxwowjjuwz2k25qlvykdyybpudush5yczn2mlklk4e4qpz6kisa3zzuxv35symcc4okjjqzh7xnuhat2aiami22tqtz2iel2sbxkmrunrfppmomgwv3z5aimifajyvriebcdgu3knm4zu5c3mjgtcmpvshafvueomfukgrwx3kr2q5fojbrsgro2dbikivmjeownscoz2dibtuhr7no4bo5ho4gbzwnoef4ayaovsmq5qcmaxnrttf2mta5hvwrl2wamue2y4q75o6zih3iwcqo2rvvqyj7gmuo24v6bp5wn66iuryrzlvipej66ngm4zngka6jfzbvxkv3gxx7tnocyfoxqrp3xfnjv4vj3a5eglrqfgjz7smbb2zsbzgg2t7ui77ggl4ovdfxqdradywppq2pdj4mzoluwaf3kxmcac2nbmpaije25syzeah6notwxdamnxa3t2rvrfozvr72r73iwlddtg4ymmmctazoiw27lkz5utbxxp42ujiazo5leuzbxlmmdqueg3a6owpdyjq57ulext7iz3njfsijtsuinqjf2wtfnbrqvesrtga2v6fqugixgqe5law6kzi5aopco3ld2slgbkj46hlbwezo55xygwwfjrd3bs2ogyvrjpzmosrvedh2pdn7n37nqtdwsqzzrmzhgexapopjpb";
+const PRACTICE = "atoom blikt doods doodt dries drost flank flikt flint floot gleed glimp griek griet grijp heelt holst joods keurt klaag klank klapt kleef klikt kloon knapt knipt kraak krans kweek leent leunt loods loont pleeg preek prees schap schud schut scoor siert slikt smaad smeek snaar staaf staar stamt sterf steur stikt stipt strot stunt teelt toorn treed veegt vergt verst vlies vliet vreet weert woedt wonde wrede".split(" ");
+const EPOCH = new Date(2026, 9, 21); // Snoeple #1 = 21 oktober 2026
+
+const ABC = "abcdefghijklmnopqrstuvwxyz";
+function neighbors(w){const out=[];for(let i=0;i<5;i++)for(const c of ABC){if(c===w[i])continue;const n=w.slice(0,i)+c+w.slice(i+1);if(WORDS.has(n))out.push(n)}return out}
+function bfs(only){const d={[TARGET]:0},q=[TARGET];while(q.length){const w=q.shift();for(const n of neighbors(w))if(!(n in d)&&(!only||only.has(n))){d[n]=d[w]+1;q.push(n)}}return d}
+const DIST=bfs(FAMILIAR);      // par: kortste route via bekende woorden
+const DIST_ALL=bfs(null);     // perfecte score: kortste route via alle woorden
+const perfectOf=g=>g.perfect||DIST_ALL[g.start];
+const noMatch=w=>[...w].every((c,i)=>c!==TARGET[i]);
+// Kortste route, bij voorkeur via bekende woorden
+function shortestAll(s){const p=[s];while(p[p.length-1]!==TARGET){const cur=p[p.length-1];p.push(neighbors(cur).find(n=>DIST_ALL[n]===DIST_ALL[cur]-1))}return p}
+function shortest(s){const p=[s];while(p[p.length-1]!==TARGET){const cur=p[p.length-1];p.push(neighbors(cur).find(n=>DIST[n]===DIST[cur]-1))}return p}
+// Moeilijkheid: par 4 of 5 = 1 ster … par 9 of hoger = 5 sterren
+const MIN_PAR=5, MAX_PAR=9;
+const starsFor=p=>Math.max(1,Math.min(5,1+Math.round((p-MIN_PAR)*4/(MAX_PAR-MIN_PAR))));
+const starText=p=>"★".repeat(starsFor(p))+"☆".repeat(5-starsFor(p));
+const diffCount=(a,b)=>{let c=0;for(let i=0;i<5;i++)if(a[i]!==b[i])c++;return c};
+
+const store={get(k,f){try{const v=localStorage.getItem(k);return v?JSON.parse(v):f}catch(e){return f}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+
+function dayIndex(){const now=new Date();const t=new Date(now.getFullYear(),now.getMonth(),now.getDate());return Math.round((t-EPOCH)/864e5)}
+function todayKey(){const n=new Date();return n.getFullYear()+"-"+(n.getMonth()+1)+"-"+n.getDate()}
+
+let mode="daily", game=null, typed="", msgTimer=null, resultOpen=true;
+
+function decodeDay(i){
+  const B="abcdefghijklmnopqrstuvwxyz234567";
+  let x=(Math.imul(i+1,2654435761)>>>0)^0x5EED1E; x>>>=0; let w="";
+  for(let j=0;j<5;j++){x=(Math.imul(x,1103515245)+12345)>>>0;w+=String.fromCharCode(97+(B.indexOf(DAILY_BLOB[i*5+j])^((x>>>16)&31)))}
+  return w;
+}
+async function getDaily(){
+  if(DAILY_SOURCE==="server"){
+    const r=await fetch("/api/vandaag",{cache:"no-store"}); if(!r.ok)throw new Error("http "+r.status);
+    const j=await r.json(); return {di:j.num-1,start:j.start};
+  }
+  const di=dayIndex(); return {di,start:decodeDay(((di%DAILY_COUNT)+DAILY_COUNT)%DAILY_COUNT)};
+}
+let loadingDaily=false;
+async function newGame(m){
+  resultOpen=true;
+  const old=store.get("snoeple-daily",null); if(old&&"hintUsed" in old){delete old.hintUsed; store.set("snoeple-daily",old)}
+  mode=m;
+  let start, num=null;
+  if(m==="daily"){
+    if(loadingDaily)return; loadingDaily=true;
+    let info; try{info=await getDaily()}catch(e){loadingDaily=false;showLoadError();return}
+    loadingDaily=false;
+    const di=info.di; num=di+1; var dayIdx=di;
+    start=info.start;
+    const saved=store.get("snoeple-daily",null);
+    if(saved&&saved.key===todayKey()&&saved.start===start){game=saved;if(!game.done){game.par=DIST[start];game.perfect=DIST_ALL[start]}typed="";render();return}
+  }else{
+    const pool=PRACTICE;
+    let s; do{s=pool[Math.floor(Math.random()*pool.length)]}while(game&&s===game.start&&pool.length>1);
+    start=s;
+  }
+  game={key:todayKey(),start,num,path:[start],done:false,par:DIST[start],perfect:DIST_ALL[start],hintsUsed:0,di:(m==="daily"?dayIdx:null)};
+  typed=""; save(); render();
+}
+function showLoadError(){
+  if(game)return flash("De nieuwe puzzel kon niet laden. Probeer het zo opnieuw.");
+  document.getElementById("ladder").innerHTML='<p class="loaderr">De puzzel van vandaag kon niet laden. Controleer je internet en ververs de pagina, of speel intussen een oefenpuzzel.</p>';
+}
+function save(){if(mode==="daily")store.set("snoeple-daily",game)}
+
+function flash(t,ok){const el=document.getElementById("msg");el.textContent=t;el.className="msg"+(ok?" ok":"");clearTimeout(msgTimer);msgTimer=setTimeout(()=>{el.textContent=""},2600)}
+function shake(){const r=document.querySelector(".input");if(!r)return;r.classList.remove("shake");void r.offsetWidth;r.classList.add("shake")}
+
+function submit(){
+  if(game.done)return;
+  const prev=game.path[game.path.length-1], w=typed;
+  if(w.length<5){flash("Een woord heeft vijf letters.");shake();return}
+  const d=diffCount(prev,w);
+  if(d===0){flash("Dat is hetzelfde woord. Verander één letter.");shake();return}
+  if(d>1){flash("Je mag maar één letter tegelijk veranderen.");shake();return}
+  if(!WORDS.has(w)){flash(w.toUpperCase()+" staat niet in onze snoeptrommel.");shake();return}
+  if(game.path.includes(w)){flash("Dat woord heb je al gehad.");shake();return}
+  game.path.push(w); typed="";
+  if(w===POEP)setTimeout(()=>flash("Bah! 💩",true),5*FLIP_STEP+FLIP_HALF);
+  if(w===TARGET){game.done=true;finish();resultOpen=false;setTimeout(()=>{resultOpen=true;renderResult();document.getElementById("btnClose").focus()},5*FLIP_STEP+FLIP_HALF+1500)}
+  save(); render(true);
+}
+function undo(){if(mode==="daily"||animating||game.done||game.path.length<2)return;game.path.pop();typed="";save();render()}
+// Hints per puzzel: 5 sterren = 3, 4 sterren = 2, 1 t/m 3 sterren = 1
+const maxHints=()=>{const s=starsFor(game.par);return s>=5?3:s===4?2:1};
+const usedHints=()=>game.hintsUsed||0;
+const hintsLeft=()=>maxHints()-usedHints();
+function hintLine(full){const u=usedHints(),m=maxHints();
+  if(!u)return full?"🧠 Opgelost zonder hint.":"🧠 zonder hint";
+  return full?"💡 Opgelost met "+u+" van "+m+" hint"+(m>1?"s":"")+".":"💡 "+u+"/"+m+" hint"+(m>1?"s":"")+" gebruikt"}
+function hint(){
+  if(animating||game.done||hintsLeft()<=0)return;
+  const cur=game.path[game.path.length-1];
+  const fresh=neighbors(cur).filter(n=>!game.path.includes(n));
+  const best=(D)=>fresh.filter(n=>n in D).sort((a,b)=>D[a]-D[b])[0];
+  const pick=best(DIST)||best(DIST_ALL);
+  if(!pick)return;
+  game.hintsUsed=(game.hintsUsed||0)+1; typed=pick; save(); render();
+  flash("Hint: "+pick.toUpperCase()+" brengt je dichter bij SNOEP. Druk op Enter.",true);
+}
+// Opgeven: eerst een bevestiging op de knop zelf, daarna de oplossing; je reeks stopt
+let giveUpTimer=null;
+function giveUp(){
+  if(animating||game.done)return;
+  const b=document.getElementById("btnGiveUp");
+  if(!b.classList.contains("armed")){
+    b.classList.add("armed"); b.textContent="Zeker? Je reeks stopt";
+    clearTimeout(giveUpTimer); giveUpTimer=setTimeout(()=>{b.classList.remove("armed");b.textContent="Kleine speler"},3500);
+    return;
+  }
+  clearTimeout(giveUpTimer); b.classList.remove("armed"); b.textContent="Kleine speler";
+  game.done=true; game.gaveUp=true; typed="";
+  game.solution=shortestAll(game.path[game.path.length-1]).slice(1);   // perfecte route vanaf je laatste woord
+  if(mode==="daily"){
+    const st=store.get("snoeple-stats",{played:0,streak:0,best:0,parOrBetter:0,last:null});
+    const di=(game.di!=null)?game.di:dayIndex();
+    if(st.last==null||di>st.last){st.played++; st.streak=0; st.last=di; store.set("snoeple-stats",st)}
+  }
+  save(); resultOpen=false; render(false,true);
+  setTimeout(()=>{resultOpen=true;renderResult()},FLIP_HALF*2+1400);
+}
+function restart(){if(game.done||mode==="daily")return;game.path=[game.start];typed="";save();render()}
+
+function finish(){
+  if(mode!=="daily")return;
+  const st=store.get("snoeple-stats",{played:0,streak:0,best:0,parOrBetter:0,last:null});
+  const di=(game.di!=null)?game.di:dayIndex();   // de dag van déze puzzel, ook als het inmiddels middernacht is geweest
+  if(st.last==null||di>st.last){
+    st.played++; st.streak=(st.last===di-1)?st.streak+1:1; st.best=Math.max(st.best,st.streak);
+    const steps=game.path.length-1;
+    if(steps<=game.par&&!usedHints())st.parOrBetter++;
+    if(steps<=perfectOf(game)&&!usedHints())st.perfect=(st.perfect||0)+1;
+    st.rec=(st.rec||0)+1; st.totSteps=(st.totSteps||0)+steps; st.totOver=(st.totOver||0)+(steps-game.par);
+    st.totHints=(st.totHints||0)+usedHints();
+    st.last=di; store.set("snoeple-stats",st);
+  }
+}
+
+// Reeks: telt door zolang je elke dag de dagpuzzel oplost; een gemiste dag zet hem op 0
+function currentStreak(){const st=store.get("snoeple-stats",null);if(!st)return 0;const di=dayIndex();return (st.last===di||st.last===di-1)?st.streak:0}
+// Uitslag: perfecte score ≤ onder par < par < boven par
+function verdictText(steps,par,perf,share){
+  if(steps<=perf)return "perfecte score! 🏆"+(perf<par?" ("+(par-steps)+" onder par)":"");
+  if(steps<par)return (par-steps)+" onder par! 🤯"+(share?" (par "+par+")":"");
+  if(steps===par)return "op par 🎯";
+  return "+"+(steps-par)+" boven par"+(share?" (par "+par+")":"");
+}
+// Link naar het spel: op een eigen website het eigen adres, anders de Claude-link
+const ARTIFACT_URL="https://claude.ai/artifact/NZ4fqV75o4KZXQHtEMpR4T";
+const GAME_URL=(location.protocol.startsWith("http")&&!/claude/i.test(location.hostname))?location.origin+location.pathname:ARTIFACT_URL;
+function shareText(){
+  const steps=game.path.length-1, p=game.par;
+  const head=mode==="daily"?"Snoeple #"+game.num:"Snoeple (oefenen)";
+  const verdict=game.gaveUp?"❌ opgegeven":verdictText(steps,p,perfectOf(game),true);
+  const line="🟩".repeat(Math.min(steps,p)-1)+"🟨".repeat(Math.max(0,steps-p))+"🍬";
+  if(game.gaveUp)return head+" · "+starText(p)+"\n"+game.start.toUpperCase()+" → SNOEP\n"+verdict+" na "+steps+" stap"+(steps===1?"":"pen")+"\n"+"🟥".repeat(Math.max(1,steps))+"\n"+GAME_URL;
+  return head+" · "+starText(p)+"\n"+game.start.toUpperCase()+" → SNOEP\n"+steps+" stappen · "+verdict+"\n"+hintLine(false)+(mode==="daily"&&currentStreak()>1?"\n🔥 reeks van "+currentStreak()+" dagen":"")+"\n"+line+"\n"+GAME_URL;
+}
+
+const POEP="poept";
+function tilesHTML(w,cls,prev,pending){
+  return w.split("").map((c,i)=>{
+    let k="tile";
+    if(w===POEP)k+=" poep";   // 💩 grapje: POEPT wordt helemaal bruin
+    else if(cls!=="start"&&c===TARGET[i])k+=" hit";
+    else if(prev&&prev[i]!==c)k+=" changed";
+    if(pending)return '<div class="tile pending" data-final="'+k+'">'+c+'</div>';
+    return '<div class="'+k+'">'+c+'</div>'}).join("");
+}
+
+// Letters omdraaien na Enter, één voor één, zoals bij Wordle
+const FLIP_STEP=300, FLIP_HALF=250;
+let animating=false;
+function revealRung(r){
+  const tiles=[...r.querySelectorAll(".tile.pending")];
+  const reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if(reduce){tiles.forEach(t=>t.className=t.dataset.final);return}
+  animating=true;
+  tiles.forEach((t,i)=>setTimeout(()=>{
+    t.classList.add("flip-in");
+    setTimeout(()=>{t.className=t.dataset.final+" flip-out";t.addEventListener("animationend",()=>t.classList.remove("flip-out"),{once:true})},FLIP_HALF);
+  },i*FLIP_STEP));
+  setTimeout(()=>{animating=false},tiles.length*FLIP_STEP+FLIP_HALF);
+}
+// Alle oplossingsvakjes tegelijk omdraaien
+function revealAll(L){
+  const tiles=[...L.querySelectorAll(".solution .tile.pending")];
+  if(matchMedia("(prefers-reduced-motion: reduce)").matches){tiles.forEach(t=>t.className=t.dataset.final);return}
+  animating=true;
+  tiles.forEach(t=>t.classList.add("flip-in"));
+  setTimeout(()=>{tiles.forEach(t=>{t.className=t.dataset.final+" flip-out";t.addEventListener("animationend",()=>t.classList.remove("flip-out"),{once:true})});animating=false},FLIP_HALF);
+}
+function render(popLast,revealSol){
+  const L=document.getElementById("ladder");
+  let h="";
+  game.path.forEach((w,i)=>{
+    if(i===0){h+='<div class="rung start" aria-label="Startwoord '+w+'">'+tilesHTML(w,"start")+'</div>';return}
+    const last=popLast&&i===game.path.length-1;
+    h+='<div class="rung'+(last?' reveal':'')+(w===TARGET?' final':'')+'"><span class="n">'+i+'</span>'+tilesHTML(w,"",game.path[i-1],last)+'</div>';
+  });
+  if(!game.done){
+    let t="";for(let i=0;i<5;i++){const c=typed[i]||"";t+='<div class="tile'+(c?" filled":"")+(i===typed.length?" cursor":"")+'">'+c+'</div>'}
+    h+='<div class="rung input" aria-label="Jouw volgende woord"><span class="n">'+game.path.length+'</span>'+t+'</div>';
+  }
+  if(game.gaveUp){
+    if(!game.solution)game.solution=shortestAll(game.path[game.path.length-1]).slice(1);
+    let prev=game.path[game.path.length-1];
+    h+='<div class="sol-label">Oplossing vanaf '+prev.toUpperCase()+'</div>';
+    game.solution.forEach((w,j)=>{h+='<div class="rung solution"><span class="n">'+(game.path.length+j)+'</span>'+tilesHTML(w,"",prev,!!revealSol)+'</div>';prev=w});
+  }
+  L.innerHTML=h;
+  if(popLast){const r=L.querySelector(".rung.reveal");if(r)revealRung(r)}
+  if(revealSol)revealAll(L);
+  L.scrollTop=L.scrollHeight;
+  document.getElementById("app").classList.toggle("won",game.done&&!game.gaveUp);
+  document.getElementById("label").textContent=mode==="daily"?"Snoeple #"+game.num:"Oefenpuzzel";
+  document.getElementById("steps").textContent=game.path.length-1;
+  document.getElementById("btnDaily").setAttribute("aria-pressed",mode==="daily");
+  document.getElementById("btnPractice").setAttribute("aria-pressed",mode!=="daily");
+  const hb=document.getElementById("btnHint"); const left=hintsLeft(); hb.disabled=game.done||left<=0; hb.textContent=left>0?"Hint ("+left+" van "+maxHints()+" over)":"Hint gebruikt ("+usedHints()+" van "+maxHints()+")";
+  const s=starsFor(game.par);
+  document.getElementById("diff").innerHTML='<span class="stars" title="Moeilijkheid '+s+' van 5">'+"★".repeat(s)+'<span class="off">'+"★".repeat(5-s)+'</span></span>';
+  document.getElementById("diff").setAttribute("aria-label","Moeilijkheid "+s+" van 5 sterren");
+  document.getElementById("btnRestart").hidden=mode==="daily";
+  document.getElementById("btnUndo").hidden=mode==="daily";
+  const sk=document.getElementById("streak"),cs=currentStreak();
+  sk.hidden=mode!=="daily"||cs<1; sk.textContent="🔥 "+cs+(cs===1?" dag":" dagen");
+  ["btnUndo","btnRestart"].forEach(id=>document.getElementById(id).disabled=game.done||game.path.length<2);
+  document.getElementById("tools").hidden=game.done;
+  document.getElementById("kb").hidden=game.done;
+  renderResult();
+}
+
+// Uitklapbare routes: par en perfect vanaf het startwoord
+function routeHTML(path){
+  return '<ol class="route">'+path.map((w,i)=>'<li>'+[...w].map((c,k)=>{
+    const ch=i>0&&path[i-1][k]!==c, hit=c===TARGET[k];
+    return '<span class="'+(w===POEP?"rp":hit?"rh":ch?"rc":"")+'">'+c+'</span>'}).join("")+'</li>').join("")+'</ol>';
+}
+function renderRoutes(p,perf){
+  const S=game.start.toUpperCase();
+  let html='<details id="dPar"><summary>Par vanaf '+S+' <b>'+p+' stappen</b></summary>'+routeHTML(shortest(game.start))+'</details>';
+  if(perf<p)html+='<details id="dPerf"><summary>Perfect vanaf '+S+' <b>'+perf+' stappen</b></summary>'+routeHTML(shortestAll(game.start))+'</details>';
+  else html+='<p class="same">De perfecte route is hier gelijk aan par.</p>';
+  const R=document.getElementById("resRoutes");
+  const open=[...R.querySelectorAll("details[open]")].map(d=>d.id);
+  R.innerHTML=html; open.forEach(id=>{const d=document.getElementById(id);if(d)d.open=true});
+}
+function renderResult(){
+  const O=document.getElementById("overlay");
+  O.hidden=!(game.done&&resultOpen);
+  document.getElementById("btnReopen").hidden=!(game.done&&!resultOpen);
+  if(!game.done)return;
+  const steps=game.path.length-1,p=game.par;
+  document.getElementById("resHint").textContent=hintLine(true);
+  const perf=perfectOf(game);
+  if(game.gaveUp){
+    const up=a=>a.map(w=>w.toUpperCase()).join(" → ");
+    document.getElementById("resTitle").textContent="Volgende keer beter!";
+    document.getElementById("resScore").innerHTML='<div><b>'+perf+'</b><span>Perfecte score</span></div><div><b>'+p+'</b><span>Par</span></div><div class="over"><b>–</b><span>Opgegeven</span></div>';
+    const V=document.getElementById("resVerdict"); V.className="verdict over"; V.textContent="Opgegeven na "+steps+" stap"+(steps===1?"":"pen");
+    document.getElementById("resText").textContent="Oplossing vanaf "+game.path[game.path.length-1].toUpperCase()+": "+up([game.path[game.path.length-1]].concat(game.solution||[]))+".";
+    document.getElementById("resHint").textContent=hintLine(true).replace("Opgelost","Gespeeld");
+  }else{
+  document.getElementById("resTitle").textContent=steps<=perf?"Wat een woordkenner!":steps<p?"Onder par, knap!":steps===p?"Smullen! Precies par.":steps-p===1?"Bijna op par!":"Gelukt, snoep binnen!";
+  const cls=steps<=perf?"best":steps<=p?"good":"over";
+  document.getElementById("resScore").innerHTML=
+    '<div><b>'+perf+'</b><span>Perfecte score</span></div>'+
+    '<div><b>'+p+'</b><span>Par</span></div>'+
+    '<div class="'+cls+'"><b>'+steps+'</b><span>Jouw stappen</span></div>';
+  const V=document.getElementById("resVerdict"); V.className="verdict "+cls; V.textContent=verdictText(steps,p,perf,false).replace(/^./,c=>c.toUpperCase());
+  const up=a=>a.map(w=>w.toUpperCase()).join(" → ");
+  document.getElementById("resText").textContent="Jouw route: "+up(game.path)+".";
+  }
+  renderRoutes(p,perf);
+  document.getElementById("shareText").textContent=shareText();
+  const S=document.getElementById("stats");
+  if(mode==="daily"){
+    const st=store.get("snoeple-stats",{played:1,streak:1,best:1,parOrBetter:0});
+    S.hidden=false;
+    const nl=x=>x.toLocaleString("nl-NL",{minimumFractionDigits:1,maximumFractionDigits:1});
+    const avgOver=st.rec?(st.totOver/st.rec>0?"+":"")+nl(st.totOver/st.rec):"–";
+    S.innerHTML=[[st.played,"gespeeld"],[currentStreak(),"reeks"],[st.best,"langste reeks"],[st.perfect||0,"perfect"],[st.parOrBetter,"op of onder par"],[avgOver,"gem. t.o.v. par"]].map(([v,l])=>'<div><b>'+v+'</b><span>'+l+'</span></div>').join("");
+    document.getElementById("nextIn").hidden=false; tick();
+  }else{S.hidden=true;document.getElementById("nextIn").hidden=true}
+}
+function tick(){
+  const el=document.getElementById("nextIn"); if(el.hidden)return;
+  if(game&&game.key!==todayKey()){if(!el.querySelector("button"))el.innerHTML='<button class="cta" id="btnNewDay">Speel de nieuwe Snoeple</button>';return}
+  const n=new Date(),m=new Date(n.getFullYear(),n.getMonth(),n.getDate()+1),s=Math.floor((m-n)/1000);
+  const pad=x=>String(x).padStart(2,"0");
+  el.innerHTML='Nieuwe Snoeple over <span class="timer">'+pad(Math.floor(s/3600))+":"+pad(Math.floor(s%3600/60))+":"+pad(s%60)+'</span>';
+}
+// Na middernacht: een puzzel die nog niet begonnen is wisselt meteen; een begonnen puzzel maak je eerst af
+setInterval(()=>{tick(); if(mode==="daily"&&game&&game.key!==todayKey()&&!game.done&&game.path.length===1&&!animating)newGame("daily")},1000);
+
+function press(k){
+  if(game.done||animating||!document.getElementById("howto").hidden)return;
+  if(k==="enter")return submit();
+  if(k==="back"){typed=typed.slice(0,-1);return render()}
+  if(/^[a-z]$/.test(k)&&typed.length<5){typed+=k;render()}
+}
+// toetsenbord
+const rows=["qwertyuiop","asdfghjkl","zxcvbnm"];
+document.getElementById("kb").innerHTML=rows.map((r,i)=>'<div class="row">'+(i===2?'<button class="key wide enter" data-k="enter">Enter</button>':'')+r.split("").map(c=>'<button class="key" data-k="'+c+'">'+c+'</button>').join("")+(i===2?'<button class="key wide" data-k="back" aria-label="Wissen">⌫</button>':'')+'</div>').join("");
+document.getElementById("kb").addEventListener("click",e=>{const b=e.target.closest("[data-k]");if(b){press(b.dataset.k);b.blur()}});
+document.addEventListener("keydown",e=>{
+  if(e.metaKey||e.ctrlKey||e.altKey)return;
+  if(e.key==="Enter"){e.preventDefault();press("enter")}
+  else if(e.key==="Backspace"){e.preventDefault();press("back")}
+  else if(/^[a-zA-Z]$/.test(e.key))press(e.key.toLowerCase());
+});
+
+document.getElementById("btnUndo").onclick=undo;
+document.getElementById("btnRestart").onclick=restart;
+document.getElementById("btnGiveUp").onclick=giveUp;
+document.getElementById("btnHint").onclick=hint;
+// Licht / donker
+function paintSkin(){const light=document.documentElement.dataset.skin==="light",b=document.getElementById("btnSkin");
+  b.textContent=light?"☾":"☀"; b.setAttribute("aria-label",light?"Donker thema":"Licht thema"); b.title=b.getAttribute("aria-label");}
+document.getElementById("btnSkin").onclick=()=>{const r=document.documentElement;
+  if(r.dataset.skin==="light")delete r.dataset.skin; else r.dataset.skin="light";
+  try{localStorage.setItem("snoeple-skin",r.dataset.skin||"dark")}catch(e){} paintSkin();};
+paintSkin();
+document.getElementById("nextIn").addEventListener("click",e=>{if(e.target.id==="btnNewDay")newGame("daily")});
+const closeResult=()=>{resultOpen=false;renderResult()};
+document.getElementById("btnClose").onclick=closeResult;
+document.getElementById("overlay").addEventListener("click",e=>{if(e.target.id==="overlay")closeResult()});
+document.getElementById("btnReopen").onclick=()=>{resultOpen=true;renderResult()};
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&resultOpen&&game.done)closeResult()});
+document.getElementById("btnDaily").onclick=()=>newGame("daily");
+document.getElementById("btnPractice").onclick=()=>newGame("practice");
+document.getElementById("btnMore").onclick=()=>newGame("practice");
+const howto=document.getElementById("howto");
+document.getElementById("btnHelp").onclick=()=>{howto.hidden=false;document.getElementById("btnCloseHelp").focus()};
+howto.addEventListener("click",e=>{if(e.target===howto){howto.hidden=true;store.set("snoeple-seen",1)}});
+document.getElementById("btnCloseHelp").onclick=()=>{howto.hidden=true;store.set("snoeple-seen",1)};
+// Score kopiëren; de speler plakt hem zelf in WhatsApp, Instagram enz.
+function copyFallback(t){
+  const ta=document.createElement("textarea");ta.value=t;ta.setAttribute("readonly","");
+  ta.style.cssText="position:fixed;top:0;left:0;opacity:0;font-size:16px";document.body.appendChild(ta);
+  ta.focus();ta.select();ta.setSelectionRange(0,t.length);
+  let ok=false;try{ok=document.execCommand("copy")}catch(e){}
+  ta.remove();return ok;
+}
+document.getElementById("btnShare").onclick=async()=>{
+  const t=shareText(), b=document.getElementById("btnShare");
+  let ok=false;
+  try{await navigator.clipboard.writeText(t);ok=true}catch(e){ok=copyFallback(t)}
+  if(ok){b.textContent="Gekopieerd! Plak hem waar je wilt ✓";setTimeout(()=>b.textContent="Kopieer je score",2500)}
+  else{const r=document.createRange();r.selectNodeContents(document.getElementById("shareText"));const s=getSelection();s.removeAllRanges();s.addRange(r);b.textContent="Tekst geselecteerd, kopieer hem zelf"}
+};
+
+// Eenmalige reset (21 okt 2026): iedereen begint opnieuw als nieuwe speler.
+// Verhoog DATA_VERSION om later nog eens alles te wissen.
+const DATA_VERSION=2;
+if(store.get("snoeple-version",1)<DATA_VERSION){
+  try{["snoeple-daily","snoeple-stats","snoeple-seen"].forEach(k=>localStorage.removeItem(k))}catch(e){}
+  store.set("snoeple-version",DATA_VERSION);
+}
+if(!store.get("snoeple-seen",0))howto.hidden=false;
+newGame("daily");
+</script>
+
+</body>
+</html>
