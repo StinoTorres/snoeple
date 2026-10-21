@@ -3,7 +3,6 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="description" content="Snoeple: de dagelijkse woordladder naar SNOEP. Verander één letter per stap.">
 <meta name="theme-color" content="#160b0f">
 <style>
 :root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);box-sizing:border-box}
@@ -13,6 +12,19 @@ img{max-width:100%}
 </style>
 <title>Snoeple</title>
 <meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="De dagelijkse woordladder naar SNOEP. Verander één letter per stap en haal par.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Snoeple">
+<meta property="og:title" content="Snoeple: de dagelijkse woordladder">
+<meta property="og:description" content="Verander één letter per stap tot je bij SNOEP bent. Elke dag een nieuwe puzzel. Haal jij par?">
+<meta property="og:url" content="https://stinotorres.github.io/snoeple/">
+<meta property="og:image" content="https://stinotorres.github.io/snoeple/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="nl_NL">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23ff4f86'/%3E%3Ctext x='32' y='47' font-family='Arial,sans-serif' font-weight='900' font-size='44' text-anchor='middle' fill='%2325060f'%3ES%3C/text%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bagel+Fat+One&family=Figtree:wght@400;600;800&display=swap">
 <style>
@@ -182,6 +194,7 @@ header{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-betw
 .howto{gap:10px;font-size:.92rem}
 .howto h2{font-size:1.35rem;line-height:1.15}
 .howto .lead{margin:0;font-weight:800}
+@media (max-height:720px){.howto{gap:7px;font-size:.84rem;padding:14px}.howto h2{font-size:1.2rem}.howto ol{gap:4px}.howto .cta{padding:10px 16px}.howto .credit{font-size:.66rem}}
 .howto ol{margin:0;padding-left:1.2em;display:flex;flex-direction:column;gap:6px}
 .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:.85rem;color:var(--muted)}
 .legend span{display:inline-flex;align-items:center;gap:6px}
@@ -222,6 +235,7 @@ button:focus-visible{outline:3px solid var(--lemon);outline-offset:2px}
       <li>Haal <b>par</b>: de kortste route met bekende woorden. Meer sterren is een langere route, van ★ (4 of 5) tot ★★★★★ (9 of meer).</li>
       <li>Ken je zeldzame woorden? Dan kom je onder par, misschien wel tot de <b>perfecte score</b>: de kortste route die bestaat.</li>
       <li>Vast? Je hebt 1 hint, bij ★★★★ 2 en bij ★★★★★ 3.</li>
+      <li><b>Kleine speler:</b> ben je een klein spelertje en geef je op, dan gaat met je eer ook je reeks verloren.</li>
       <li>Elke dag een nieuwe puzzel. Speel elke dag voor een 🔥 reeks.</li>
     </ol>
     <div class="legend">
@@ -283,7 +297,7 @@ const TARGET = "snoep";
 const DAILY_SOURCE = "embedded";
 const DAILY_COUNT = 306;
 const DAILY_BLOB = "usnjalmqt2re5vcl2f6bwsmxwwp3hoiejtkst6eqbmnae2efpjwrrw7wqqzk6pbxdkau4y7pjo6bonkhrg4gsthf3p6lm7untz3vl5sfbkst6hblpcavcl6ek2vskz4qlfkkblgwk2i3ieux2zwbfme7sur5fdaa4vkeyrz5dkrlkvwgbnrzhl67xu7f37drykaelfcoof3iacwufw6okp3usr533fqw33vmvdtkj4d2nabzdf5b6enjdgemj772753erw44ohofqdvx74y7ov7mcpq5ihw5ilkebqxvnbsu7ggqw6gclu3tdaxuoibkdrtj3wdoeopaykzbybtjjgrs556ssf44d2hzhxvjxkubeokxhf5jbzeb72ep4346k7jd4nfca4frainsrnjmwiwejz7r3lcbytoyxch4ginzrnev33qiudysyu44mm2jefjfpgx3vdjr3tknozhye6ys4xda6vemaqy6527zhi7rgiueqen63sgu35pgw7myhe57wj6abr4evbdymtcgpmvd4cl24exxf4zmxuhcbxs7n6qlluxmx7e6aifvqoo7h6joauh3j63rqdlqrsghpgwqdnoaxwqqo2mdypddwzitlta7hyv4eyjvu532k2yr4ks45l7fgn3wumdllqlhuwaol4vkqlklo2htdrz5raxltbgiw4jnhhjkzzcm7hgy3y3dpk2ft6kofcsl66cqb3vn6jcijm2mf2c2kdkc6qbmpbnts56yzi5xkjc7omdyeq7zzjn2knk7jpueo6f6qgrwcxvc4krvwul2lgr2qdqsegxhjaknniegc23mfqkcbgsj4r3kajyxdsmdkcw4ejc2vufz6vefqqh3otracxvf2k4hm2jymf6a676fncoihdqwbgwhtei3oyccgjmz2gtamkzengamqutltb5c2ol4osmhmucchad4f3rvleqhdi5qnnkwqf5vuvh4wgyig63hdzsus5c7fqiuvs5wnf56yi3ietgjgqbg6lrnmgvpqm3a2yjjb65skoyfzob5xvy3jo4ymv2euazarmeglkftbbj6dnlwqxlqzvaem2asz5wer2b2vl6rsjd2tf4yxmzhtvxcuqrdakroaaf76ix2qnpd4oujdy2clammbjyncraghvvyttyzbwlkzw7izynw2skjsq6ccymlzwa5bpidxajrwzkwd2fe4zsinwehooh6nci5zw4fo4wd2fl54acfshdivs4o2gfco4dyfyg3gm2oghp7axvzchriiigc3bd3agchntmwu6a4rgqsq3xv2zajnx7ukiyclxux55erwnsuujlpiseoa7u6rk2iwu7fcbep4k4eifcopveqdrg4s3d2c3spkkeuzxdlfk6fhjmzalhw4e6gc3c6ljrbtvq4wvzg47itjmxla5ceclqqzk5hjdqjhurrqa6dewtrg6be2ztauerjhrf54xarrhw67fkqdapyvbnkogddi3jugbthsrerxfekbefd5htc3kfmvytgzfexif";
-const PRACTICE = "beent boert breuk deels deelt doemt doods drost gleed greep heelt hoede joelt keurt klaag klank kloon kraak leent liegt loert moede plint print roede siert stunt toert toont traag trant treed vergt verst vlaag vreet weest woelt worst".split(" ");
+const PRACTICE = "beeft beent bergt blonk bluft boers boert boort breid breuk deels deelt deert doemt doods dooft drost flipt frons gleed glipt graat greep grief grift heelt hoede hoedt hoogt joelt keurt klaag klank klemt kliek kloon kloot kluif kluit kluts knikt koert koest kraak kraal krabt kreng leent liegt loert looft meert moede morst opeen piept pleur plint poogt praal print roede roeit roemt schaf schei schik schim schuw siert sleuf slijt smolt snakt snelt snert snuif spijs spuwt staak stans steef stent stook strek stunt stuwt toert toont traag trant treed veert verft verga vergt verst vlaag vlier vlijt voorn vreet weest woelt worst wreef".split(" ");
 // Snoeple #1 = 21 oktober 2026 (Nederlandse tijd)
 
 const ABC = "abcdefghijklmnopqrstuvwxyz";
@@ -295,7 +309,9 @@ const perfectOf=g=>g.perfect||DIST_ALL[g.start];
 const noMatch=w=>[...w].every((c,i)=>c!==TARGET[i]);
 // Kortste route, bij voorkeur via bekende woorden
 function shortestAll(s){const p=[s];while(p[p.length-1]!==TARGET){const cur=p[p.length-1];p.push(neighbors(cur).find(n=>DIST_ALL[n]===DIST_ALL[cur]-1))}return p}
-function shortest(s){const p=[s];while(p[p.length-1]!==TARGET){const cur=p[p.length-1];p.push(neighbors(cur).find(n=>DIST[n]===DIST[cur]-1))}return p}
+// Par voor elk startwoord: ook voor een minder bekend woord, via zijn bekendste buur
+function parOf(w){if(w in DIST)return DIST[w];let b=Infinity;for(const n of neighbors(w))if(n in DIST)b=Math.min(b,DIST[n]+1);return b===Infinity?undefined:b}
+function shortest(s){const p=[s];while(p[p.length-1]!==TARGET){const cur=p[p.length-1],t=parOf(cur)-1;p.push(neighbors(cur).find(n=>DIST[n]===t))}return p}
 // Moeilijkheid: par 4 of 5 = 1 ster … par 9 of hoger = 5 sterren
 const MIN_PAR=5, MAX_PAR=9;
 const starsFor=p=>Math.max(1,Math.min(5,1+Math.round((p-MIN_PAR)*4/(MAX_PAR-MIN_PAR))));
@@ -343,15 +359,15 @@ async function newGame(m,fresh){
     const di=info.di; num=di+1; var dayIdx=di;
     start=info.start;
     const saved=store.get("snoeple-daily",null);
-    if(saved&&saved.key===todayKey()&&saved.start===start){game=saved;if(!game.done){game.par=DIST[start];game.perfect=DIST_ALL[start]}typed="";render();return}
+    if(saved&&saved.key===todayKey()&&saved.start===start){game=saved;if(!game.done){game.par=parOf(start);game.perfect=DIST_ALL[start]}typed="";render();return}
   }else{
     const saved=store.get("snoeple-practice",null);
-    if(!fresh&&saved&&!saved.done&&saved.start&&saved.start in DIST){game=saved;typed="";render();return}   // ga verder waar je was
+    if(!fresh&&saved&&!saved.done&&saved.start&&parOf(saved.start)!==undefined){game=saved;typed="";render();return}   // ga verder waar je was
     const pool=PRACTICE;
     let s; do{s=pool[Math.floor(Math.random()*pool.length)]}while(game&&s===game.start&&pool.length>1);
     start=s;
   }
-  game={key:todayKey(),start,num,path:[start],done:false,par:DIST[start],perfect:DIST_ALL[start],hintsUsed:0,di:(m==="daily"?dayIdx:null)};
+  game={key:todayKey(),start,num,path:[start],done:false,par:parOf(start),perfect:DIST_ALL[start],hintsUsed:0,di:(m==="daily"?dayIdx:null)};
   typed=""; save(); render();
 }
 function showLoadError(){
