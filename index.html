@@ -465,7 +465,7 @@ function shareText(){
   const steps=game.path.length-1, p=game.par;
   const head=mode==="daily"?"Snoeple #"+game.num:"Snoeple (oefenen)";
   const verdict=game.gaveUp?"❌ opgegeven":verdictText(steps,p,perfectOf(game),true);
-  const line="🟩".repeat(Math.min(steps,p)-1)+"🟨".repeat(Math.max(0,steps-p))+"🍬";
+  const line="🟩".repeat(Math.max(0,Math.min(steps,p)-1))+"🟨".repeat(Math.max(0,steps-p))+"🍬";
   if(game.gaveUp)return head+" · "+starText(p)+"\n"+game.start.toUpperCase()+" → SNOEP\n"+verdict+" na "+steps+" stap"+(steps===1?"":"pen")+"\n"+"🟥".repeat(Math.max(1,steps))+"\n"+GAME_URL;
   return head+" · "+starText(p)+"\n"+game.start.toUpperCase()+" → SNOEP\n"+steps+" stappen · "+verdict+"\n"+hintLine(false)+(mode==="daily"&&currentStreak()>1?"\n🔥 reeks van "+currentStreak()+" dagen":"")+"\n"+line+"\n"+GAME_URL;
 }
