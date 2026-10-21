@@ -432,9 +432,9 @@ function verdictText(steps,par,perf,share){
   if(steps===par)return "op par 🎯";
   return "+"+(steps-par)+" boven par"+(share?" (par "+par+")":"");
 }
-// Link naar het spel: op een eigen website het eigen adres, anders de Claude-link
-const ARTIFACT_URL="https://claude.ai/artifact/NZ4fqV75o4KZXQHtEMpR4T";
-const GAME_URL=(location.protocol.startsWith("http")&&!/claude/i.test(location.hostname))?location.origin+location.pathname:ARTIFACT_URL;
+// Link naar het spel: de GitHub-pagina; op een ander eigen domein (bijv. Cloudflare) dat adres
+const HOME_URL="https://stinotorres.github.io/snoeple/";   // vaste link in de gedeelde score (ook vanuit Claude)
+const GAME_URL=(location.protocol.startsWith("http")&&!/claude|github\.io/i.test(location.hostname))?location.origin+location.pathname:HOME_URL;
 function shareText(){
   const steps=game.path.length-1, p=game.par;
   const head=mode==="daily"?"Snoeple #"+game.num:"Snoeple (oefenen)";
