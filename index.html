@@ -25,6 +25,11 @@ img{max-width:100%}
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23ff4f86'/%3E%3Ctext x='32' y='47' font-family='Arial,sans-serif' font-weight='900' font-size='44' text-anchor='middle' fill='%2325060f'%3ES%3C/text%3E%3C/svg%3E">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Snoeple">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bagel+Fat+One&family=Figtree:wght@400;600;800&display=swap">
 <style>
@@ -194,6 +199,9 @@ header{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-betw
 .howto{gap:10px;font-size:.92rem}
 .howto h2{font-size:1.35rem;line-height:1.15}
 .howto .lead{margin:0;font-weight:800}
+.install{display:flex;flex-direction:column;gap:6px}
+.install p{margin:0;font-size:.85rem;color:var(--muted)}
+.install p b{color:var(--ink)}
 @media (max-height:720px){.howto{gap:7px;font-size:.84rem;padding:14px}.howto h2{font-size:1.2rem}.howto ol{gap:4px}.howto .cta{padding:10px 16px}.howto .credit{font-size:.66rem}}
 .howto ol{margin:0;padding-left:1.2em;display:flex;flex-direction:column;gap:6px}
 .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:.85rem;color:var(--muted)}
@@ -243,6 +251,10 @@ button:focus-visible{outline:3px solid var(--lemon);outline-offset:2px}
       <span><i class="sw changed"></i>net veranderd</span>
     </div>
     <button class="cta" id="btnCloseHelp">Ik snap het!</button>
+    <div class="install" id="installBox" hidden>
+      <button class="cta alt" id="btnInstall" hidden>📲 Zet Snoeple als app op je telefoon</button>
+      <p id="installIos" hidden>📲 <b>Als app op je iPhone:</b> tik in Safari op <b>Deel</b> (vierkantje met pijl) en kies <b>Zet op beginscherm</b>.</p>
+    </div>
     <p class="credit">Woordenlijst: <a href="https://github.com/OpenTaal/opentaal-wordlist" target="_blank" rel="noopener">Stichting OpenTaal</a>, officiële spelling (CC BY 3.0 / BSD)</p>
   </section>
   </div>
@@ -628,6 +640,22 @@ document.getElementById("btnUndo").onclick=undo;
 document.getElementById("btnRestart").onclick=restart;
 document.getElementById("btnGiveUp").onclick=giveUp;
 document.getElementById("btnHint").onclick=hint;
+// Als app: offline werken (service worker) en installeren op het beginscherm
+const OWN_SITE=location.protocol.startsWith("http")&&!/claude/i.test(location.hostname);
+let FRAMED=true; try{FRAMED=window.self!==window.top}catch(e){}
+const STANDALONE=matchMedia("(display-mode: standalone)").matches||navigator.standalone===true;
+const IOS=/iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
+let installEvt=null;
+if(OWN_SITE&&!FRAMED&&"serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
+function paintInstall(){
+  const box=document.getElementById("installBox"),btn=document.getElementById("btnInstall"),ios=document.getElementById("installIos");
+  const can=OWN_SITE&&!FRAMED&&!STANDALONE;
+  btn.hidden=!(can&&installEvt); ios.hidden=!(can&&!installEvt&&IOS); box.hidden=btn.hidden&&ios.hidden;
+}
+window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();installEvt=e;paintInstall()});
+window.addEventListener("appinstalled",()=>{installEvt=null;paintInstall();flash("Snoeple staat nu op je beginscherm 🍬",true)});
+document.getElementById("btnInstall").onclick=async()=>{if(!installEvt)return;installEvt.prompt();try{await installEvt.userChoice}catch(e){}installEvt=null;paintInstall()};
+paintInstall();
 // Licht / donker
 function paintSkin(){const light=document.documentElement.dataset.skin==="light",b=document.getElementById("btnSkin");
   b.textContent=light?"☾":"☀"; b.setAttribute("aria-label",light?"Donker thema":"Licht thema"); b.title=b.getAttribute("aria-label");}
